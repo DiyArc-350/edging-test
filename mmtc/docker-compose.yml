@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  webserver:
+    build: .
+    container_name: 5g-mmtc-webserver
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

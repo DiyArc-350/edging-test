@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  yolo-backend:
+    build: ./backend
+    container_name: yolo_api
+    restart: always
+    # Kita map ke 8001 karena port 8000 kamu sudah terpakai
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend/received_videos:/app/received_videos
+      # Volume untuk menyimpan model agar tidak hilang saat container restart
+      - yolo_models:/root/.config/Ultralytics
+
+volumes:
+  yolo_models:
