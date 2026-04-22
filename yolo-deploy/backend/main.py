@@ -10,7 +10,7 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-model = YOLO('yolov8n.pt')
+model = YOLO('yolov8s.pt')
 
 SAVE_DIR = "received_videos"
 os.makedirs(SAVE_DIR, exist_ok=True)
