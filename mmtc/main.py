@@ -20,7 +20,7 @@ if os.path.exists(DATA_FILE):
 else:
     stored_data = {}
 
-@app.route('/collect', methods=['POST'])
+@app.route('/mmtc/collect', methods=['POST'])
 def collect():
     data = request.json
     device_id = data['device_id']
@@ -41,7 +41,7 @@ def collect():
     return {"status": "saved"}, 201
 
 # NEW: Allow UEs to retrieve their last saved data
-@app.route('/get_data/<device_id>', methods=['GET'])
+@app.route('/mmtc/get_data/<device_id>', methods=['GET'])
 def get_data(device_id):
     device_record = stored_data.get(device_id)
     if device_record:
