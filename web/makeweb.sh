@@ -9,7 +9,7 @@ SOURCE_IMAGES_DIR="./"
 mkdir -p "$MEDIA_DIR"
 
 # Daftar gambar sumber
-IMAGES=("1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "GIF-1.gif" "GIF-2.gif" "GIF-3.gif")
+IMAGES=("1.jpeg" "2.jpeg" "3.jpeg" "4.jpeg" "5.jpeg" "GIF-1.gif" "GIF-2.gif" "GIF-3.gif" "GIF-4.gif" "GIF-5.gif")
 
 # Variasi elemen halaman
 TITLES=("Gallery" "Image Collection" "Photo Showcase" "Visual Display" "Picture Gallery" "Media Center" "Image Hub" "Photo Archive")
