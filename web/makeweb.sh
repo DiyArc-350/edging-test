@@ -31,7 +31,9 @@ get_random_element() {
 }
 
 get_random_images() {
-    local num_images=$(( RANDOM % 5 + 2 )) # antara 2–6 gambar
+    # This line now generates exactly 3, 4, or 5 images
+    local num_images=$(( RANDOM % 3 + 3 )) 
+    
     local temp_images=("${IMAGES[@]}")
     local selected_images=()
     for ((i=0; i<num_images && i<${#temp_images[@]}; i++)); do
