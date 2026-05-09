@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic ABR Stream Lab</title>
+
+    <!-- HLS Player (Video.js) -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <!-- DASH Player (Shaka UI) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.css" />
+
+    <style>
+        :root {
+            --accent: #00d1b2;
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --danger: #ff3860;
+        }
+
+        body {
+            background: var(--bg);
+            color: #eee;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .player-card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+        }
+
+        /* Controls Area */
+        .controls-panel {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            background: #262626;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            background: #333;
+        }
+
+        .extra-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+
+        /* Toggle Button Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 0 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 5px;
+            color: var(--accent);
+        }
+
+        .shaka-container {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Adaptive Stream Previewer</h1>
+        <p>Dynamic testing for your HLS and DASH VOD assets</p>
+    </div>
+
+    <div class="grid">
+
+        <!-- DASH PLAYER SECTION -->
+        <div class="player-card">
+            <h2>DASH Engine <span class="badge">Google Shaka</span></h2>
+
+            <div class="controls-panel">
+                <div class="input-group">
+                    <input type="text" id="dash-url" placeholder="Paste .mpd manifest URL"
+                        value="http://your-server.com/vod/dash/my_video/manifest.mpd">
+                    <button onclick="loadDash()">LOAD</button>
+                </div>
+
+                <div class="extra-actions">
+                    <span>Playback Loop:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="dash-loop" checked onchange="toggleDashLoop()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="shaka-container" id="shaka-parent">
+                <video id="dash-video" poster="https://via.placeholder.com/800x450/1a1a1a/00d1b2?text=DASH+READY"
+                    autoplay></video>
+            </div>
+        </div>
+
+        <!-- HLS PLAYER SECTION -->
+        <div class="player-card">
+            <h2>HLS Engine <span class="badge">Video.js</span></h2>
+
+            <div class="controls-panel">
+                <div class="input-group">
+                    <input type="text" id="hls-url" placeholder="Paste .m3u8 manifest URL"
+                        value="http://your-server.com/vod/hls/my_video/master.m3u8">
+                    <button onclick="loadHls()">LOAD</button>
+                </div>
+
+                <div class="extra-actions">
+                    <span>Playback Loop:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="hls-loop" checked onchange="toggleHlsLoop()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="hls-wrap">
+                <video-js id="hls-video" class="vjs-default-skin vjs-big-play-centered" controls preload="auto">
+                </video-js>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HLS / Video.js Scripts -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+
+    <script>
+        // --- DASH Player Logic ---
+        let shakaInstance;
+        const dashVideo = document.getElementById('dash-video');
+
+        async function initDash() {
+            shakaInstance = new shaka.Player(dashVideo);
+            const uiContainer = document.getElementById('shaka-parent');
+            const ui = new shaka.ui.Overlay(shakaInstance, uiContainer, dashVideo);
+
+            toggleDashLoop(); // Sync initial loop state
+            loadDash();
+        }
+
+        async function loadDash() {
+            const url = document.getElementById('dash-url').value;
+            try {
+                await shakaInstance.load(url);
+                console.log("DASH: Stream Loaded");
+            } catch (e) {
+                console.error("DASH: Failed to load", e);
+            }
+        }
+
+        function toggleDashLoop() {
+            const isLooping = document.getElementById('dash-loop').checked;
+            dashVideo.loop = isLooping;
+        }
+
+        // --- HLS Player Logic ---
+        const hlsPlayer = videojs('hls-video', {
+            fluid: true,
+            playbackRates: [0.5, 1, 1.5, 2]
+        });
+
+        function loadHls() {
+            const url = document.getElementById('hls-url').value;
+            hlsPlayer.src({
+                src: url,
+                type: 'application/x-mpegURL'
+            });
+            toggleHlsLoop(); // Sync loop state
+            hlsPlayer.play();
+        }
+
+        function toggleHlsLoop() {
+            const isLooping = document.getElementById('hls-loop').checked;
+            hlsPlayer.loop(isLooping);
+        }
+
+        // --- App Boot ---
+        document.addEventListener('shaka-ui-loaded', initDash);
+        window.onload = loadHls;
+    </script>
+</body>
+
+</html>
