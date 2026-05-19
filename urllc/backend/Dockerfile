@@ -1,20 +1,27 @@
+# Use a slim Python footprint as our foundation
 FROM python:3.10-slim
 
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install light decoding libraries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# STABLE ENDPOINT: Downloads the exact nanodet-plus-m_320.onnx model structure
+RUN curl -L -o nanodet-plus-m_320.onnx "https://sourceforge.net/projects/nanodet-plus.mirror/files/v1.0.0-alpha-1/nanodet-plus-m_320.onnx/download"
 
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 80
+
+CMD ["python", "main.py"]

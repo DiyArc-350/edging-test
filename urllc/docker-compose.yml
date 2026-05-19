@@ -5,12 +5,21 @@ services:
     build: ./backend
     container_name: yolo_api
     restart: always
-    # Kita map ke 8001 karena port 8000 kamu sudah terpakai
     ports:
-      - "8001:8000"
+      - "8001:80"  # Maps host port 8001 to our new internal FastAPI port 80
+    
+    # 1. CRITICAL OPTIMIZATION: Expand the Shared Memory / RAM-disk allocation
+    # By default, Docker only gives 64MB to /dev/shm. 
+    # Bumping this to 512MB allows concurrent in-memory video processing without crashing.
+    shm_size: '512mb'
+
+    # 2. ENVIRONMENT OPTIMIZATION: Thread limiters for portable CPU stability
+    environment:
+      - OMP_NUM_THREADS=4
+      - OPENBLAS_NUM_THREADS=4
+
     volumes:
-      - ./backend/received_videos:/app/received_videos
-      # Volume untuk menyimpan model agar tidak hilang saat container restart
+      # Volume for keeping your optimized models cached so they don't re-download or re-compile
       - yolo_models:/root/.config/Ultralytics
 
 volumes:
