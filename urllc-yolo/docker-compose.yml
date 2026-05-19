@@ -4,7 +4,7 @@ services:
   # Service 2: YOLO11 Inference Node
   yolo-backend:
     build:
-      context: ./yolo_src
+      context: ./backend
       dockerfile: Dockerfile
     container_name: urllc-yolo-backend
     ports:
