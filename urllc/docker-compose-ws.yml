@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  urllc-nanodet-backend:
+    build: ./backend
+    container_name: urllc-nanodet-backend
+    restart: always
+    ports:
+      - "8001:80"  # Maps host port 8001 to our new internal FastAPI port 80
+    
+    # 1. CRITICAL OPTIMIZATION: Expand the Shared Memory / RAM-disk allocation
+    # By default, Docker only gives 64MB to /dev/shm. 
+    # Bumping this to 512MB allows concurrent in-memory video processing without crashing.
+    shm_size: '512mb'
+
+    # 2. ENVIRONMENT OPTIMIZATION: Thread limiters for portable CPU stability
+    environment:
+      - OMP_NUM_THREADS=4
+      - OPENBLAS_NUM_THREADS=4
+
+    volumes:
+      # Volume for keeping your optimized models cached so they don't re-download or re-compile
+      - yolo_models:/root/.config/Ultralytics
+
+volumes:
+  yolo_models:
